@@ -17,19 +17,19 @@ services:
       - ../.env.app
     depends_on:
       mysql:
-        condition: service_started
+        condition: service_healthy
 
   mysql:
     image: mysql:8.0
     volumes:
       - todo-mysql-data:/var/lib/mysql
     env_file: ../.env.db
-      #    healthcheck:
-      #      test: [ "CMD", "mysql", "--execute", "SHOW DATABASES;" ]
-      #      interval: 3s
-      #      retries: 5
-      #      timeout: 5s
-      #      start_period: 15s
+    healthcheck:
+      test: [ "CMD", "mysql", "--execute", "SHOW DATABASES;" ]
+      interval: 3s
+      retries: 5
+      timeout: 5s
+      start_period: 15s
 
 
 volumes:
