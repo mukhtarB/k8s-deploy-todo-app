@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-k8s-svc-obj
+  namespace: todo-app
+  labels:
+    facing: backend
+    app: mysql-k8s-svc-label
+spec:
+  type: ClusterIP
+  selector:
+    app: mysql-k8s-svc-label
+    facing: backend
+  ports:
+    - name: mysql-svc-port
+      port: 3306
+      protocol: TCP
+      targetPort: 3306

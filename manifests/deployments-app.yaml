@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-app-k8s-deploy-obj
+  namespace: todo-app
+  labels:
+    app: todo-app-k8s-deploy-label
+    facing: frontend
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: todo-app-k8s-pod-label
+      facing: frontend
+  template:
+    metadata:
+      labels:
+        app: todo-app-k8s-pod-label
+        facing: frontend
+    spec:
+      #securityContext:
+      # runAsUser: 1000
+      #  runAsGroup: 1000
+      #  fsGroup: 1000
+      containers:
+        - name: node-todo-app
+          image: mukhtarb/todo-app:v1.1
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "0.25"
+            limits:
+              memory: "128Mi"
+              cpu: "0.5"

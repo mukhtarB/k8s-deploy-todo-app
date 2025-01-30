@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql-k8s-sts-obj
+  namespace: todo-app
+  labels:
+    app: mysql-k8s-sts-label
+    facing: backend
+spec:
+  replicas: 3
+  serviceName: mysql-sts-svc-name
+  minReadySeconds: 10
+  selector:
+    matchLabels:
+      app: mysql-k8s-pod-label
+      facing: backend
+  template:
+    metadata:
+      labels:
+        app: mysql-k8s-pod-label
+        facing: backend
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: mysql-container
+          image: mysql:8.0
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - name: local-pv-vol
+              mountPath: /var/lib/mysql
+          livenessProbe:
+            tcpSocket:
+              port: 3306
+            periodSeconds: 15
+            initialDelaySeconds: 3
+            timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - "mysqladmin ping;"
+            initialDelaySeconds: 3
+            periodSeconds: 15
+            timeoutSeconds: 5
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "0.25"
+            limits:
+              memory: "1024Mi"
+              cpu: "0.5"
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-k8s-scrt-obj
+                  key: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: mysql-k8s-configmap-obj
+                  key: MYSQL_DATABASE
+  volumeClaimTemplates:
+    - metadata:
+        name: local-pv-vol
+      spec:
+        accessModes: ['ReadWriteOnce']
+        resources:
+          requests:
+            storage: 200Mi
+
