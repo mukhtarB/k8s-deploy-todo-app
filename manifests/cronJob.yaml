@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mighty-cron
+  namespace: todo-app
+spec:
+  schedule: "* * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: counter
+              image: busybox
+              command:
+              - /bin/sh
+              - -c
+              - |
+                [ ! -f /data/counter.txt ] && echo 0 > /data/counter.txt
+                VALUE=$(cat /data/counter.txt)
+                NEW_VALUE=$((VALUE + 1))
+                echo "Current value: $NEW_VALUE"
+                echo "$NEW_VALUE" > /data/counter.txt
+              volumeMounts:
+                - name: cron-vol
+                  mountPath: /data
+            restartPolicy: OnFailure
+            volumes:
+              - name: cron-vol
+                persistentVolumeClaim:
+                  claimName: k8s-cron-pvc-obj
